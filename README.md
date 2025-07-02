@@ -66,9 +66,13 @@ This system addresses the challenge of ensuring the well-being of elderly indivi
    pip install -r requirements.txt
    ```
 
-3. **Prepare the data**
-   - Ensure `data/health_monitoring.csv` contains your health monitoring data
-   - The system expects columns: Device-ID/User-ID, Timestamp, Heart Rate, Blood Pressure, etc.
+3. **Setup data directory**
+   ```bash
+   mkdir data
+   ```
+   - Add your health monitoring CSV file as `data/health_monitoring.csv`
+   - The CSV should contain columns: Device-ID/User-ID, Timestamp, Heart Rate, Blood Pressure, Glucose Levels, Oxygen Saturation (SpO₂%), Alert Triggered (Yes/No), etc.
+   - See the "Dataset Format" section below for detailed requirements
 
 ### Usage
 
@@ -101,7 +105,7 @@ This system addresses the challenge of ensuring the well-being of elderly indivi
 
 3. **Run Comprehensive Tests**
    ```bash
-   python test_comprehensive_health_agent.py
+   python test/test_comprehensive_health_agent.py
    ```
 
 ## 📁 Project Structure
@@ -113,94 +117,18 @@ elderly_care/
 │   ├── alert_agent.py       # Alert and notification management
 │   ├── reminder_agent.py    # Medication and appointment reminders
 │   └── safety_agent.py      # Fall detection and safety monitoring
-├── data/
+├── data/                    # Health monitoring datasets (local only)
 │   ├── health_monitoring.csv    # Health monitoring dataset
 │   ├── daily_reminder.csv       # Daily activity data
 │   └── safety_monitoring.csv    # Safety monitoring data
+├── test/                    # Test files
+│   └── test_comprehensive_health_agent.py  # Comprehensive testing suite
 ├── models/                  # Trained ML models storage
 ├── event_bus.py            # Inter-agent communication system
 ├── main.py                 # Main application entry point
-├── test_comprehensive_health_agent.py  # Comprehensive testing suite
 ├── requirements.txt        # Python dependencies
 └── README.md              # This file
 ```
-
-## 🔬 Testing
-
-The project includes a comprehensive test suite that validates:
-- ✅ Import functionality
-- ✅ Agent initialization
-- ✅ Data loading and preprocessing
-- ✅ Feature preparation
-- ✅ Model training and evaluation
-- ✅ Prediction accuracy
-- ✅ Health insights generation
-- ✅ Model persistence
-- ✅ Event bus integration
-- ✅ Error handling
-
-Run tests with:
-```bash
-python test_comprehensive_health_agent.py
-```
-
-## 📈 Machine Learning Details
-
-### Health Agent ML Pipeline
-1. **Data Preprocessing**
-   - Blood pressure parsing (systolic/diastolic)
-   - Time-based feature extraction
-   - Deviation calculations from normal ranges
-   - Threshold violation counting
-
-2. **Feature Engineering**
-   - Pulse pressure calculation
-   - Mean arterial pressure (MAP)
-   - Heart rate deviation percentage
-   - Glucose and SpO2 deviation metrics
-   - Temporal features (hour, day of week)
-
-3. **Models**
-   - **Isolation Forest**: Anomaly detection with 10% contamination rate
-   - **Random Forest**: Alert prediction with 100 estimators
-   - **StandardScaler**: Feature normalization
-
-4. **Evaluation Metrics**
-   - Classification report for alert prediction
-   - Feature importance analysis
-   - Anomaly detection rate
-   - Cross-validation scores
-
-## 🚨 Alert System
-
-### Risk Levels
-- **Critical**: Alert probability > 0.8 OR 3+ violations OR anomaly score < -0.5
-- **High**: Alert probability > 0.6 OR 2+ violations OR anomaly score < -0.3
-- **Medium**: Alert probability > 0.4 OR 1+ violations OR anomaly score < -0.1
-- **Low**: All parameters within normal ranges
-
-### Recommendations Engine
-The system provides personalized recommendations based on:
-- Heart rate anomalies (bradycardia/tachycardia)
-- Blood pressure issues (hypertension/hypotension)
-- Glucose level concerns (hyperglycemia/hypoglycemia)
-- Oxygen saturation problems
-- Risk level assessment
-
-## 🔧 Configuration
-
-### Normal Health Ranges (Elderly)
-- Heart Rate: 60-100 bpm
-- Systolic BP: 90-140 mmHg
-- Diastolic BP: 60-90 mmHg
-- Glucose: 70-140 mg/dL
-- Oxygen Saturation: 95-100%
-
-### Model Parameters
-- Isolation Forest contamination: 0.1
-- Random Forest estimators: 100
-- Train/test split: 80/20
-- Random state: 42 (reproducible results)
 
 ## 📊 Dataset Format
 
@@ -215,9 +143,9 @@ The health monitoring dataset should include:
 - Alert Triggered (Yes/No)
 - Caregiver Notified (Yes/No)
 
-## 🤝 Contributing
+**Note**: Data files are excluded from the repository for privacy and size reasons. You need to provide your own dataset.
 
-1. Fork the repository
+## 🤝 Contributing
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)

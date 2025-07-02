@@ -152,10 +152,11 @@ Thumbs.db
 *.swo
 *~
 
-# Data files (optional - uncomment if data files are sensitive)
-# data/*.csv
-# data/*.json
-# data/*.xlsx
+# Data files (excluded from repository for privacy/size reasons)
+data/
+data/*.csv
+data/*.json
+data/*.xlsx
 
 # Configuration files with sensitive information
 config/secrets.ini
