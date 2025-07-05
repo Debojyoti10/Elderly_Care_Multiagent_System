@@ -131,7 +131,7 @@ dmypy.json
 # Project specific
 # Trained models (can be large)
 models/*.pkl
-test_models/
+test_models/*.pkl
 
 # Logs
 *.log
