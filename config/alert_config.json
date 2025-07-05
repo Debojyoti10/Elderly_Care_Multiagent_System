@@ -1,0 +1,105 @@
+{
+  "contacts": {
+    "primary_caregiver": {
+      "name": "Primary Caregiver",
+      "phone": "+1234567890",
+      "email": "caregiver@example.com",
+      "role": "primary",
+      "priority": 1
+    },
+    "family_member": {
+      "name": "Family Member",
+      "phone": "+1234567891",
+      "email": "family@example.com",
+      "role": "family",
+      "priority": 2
+    },
+    "emergency_services": {
+      "name": "Emergency Services",
+      "phone": "911",
+      "email": "emergency@local.gov",
+      "role": "emergency",
+      "priority": 1
+    },
+    "healthcare_provider": {
+      "name": "Healthcare Provider",
+      "phone": "+1234567892",
+      "email": "doctor@clinic.com",
+      "role": "medical",
+      "priority": 2
+    }
+  },
+  "escalation_rules": {
+    "critical": {
+      "immediate_contacts": [
+        "emergency_services",
+        "primary_caregiver"
+      ],
+      "escalation_time": 300,
+      "escalation_contacts": [
+        "family_member",
+        "healthcare_provider"
+      ]
+    },
+    "high": {
+      "immediate_contacts": [
+        "primary_caregiver"
+      ],
+      "escalation_time": 900,
+      "escalation_contacts": [
+        "family_member",
+        "healthcare_provider"
+      ]
+    },
+    "medium": {
+      "immediate_contacts": [
+        "primary_caregiver"
+      ],
+      "escalation_time": 3600,
+      "escalation_contacts": [
+        "family_member"
+      ]
+    },
+    "low": {
+      "immediate_contacts": [
+        "primary_caregiver"
+      ],
+      "escalation_time": 7200,
+      "escalation_contacts": []
+    }
+  },
+  "response_protocols": {
+    "health_emergency": {
+      "priority": "critical",
+      "auto_escalate": true,
+      "required_actions": [
+        "call_emergency_services",
+        "notify_primary_caregiver"
+      ]
+    },
+    "fall_detected": {
+      "priority": "critical",
+      "auto_escalate": true,
+      "required_actions": [
+        "assess_response",
+        "call_emergency_services"
+      ]
+    },
+    "medication_missed": {
+      "priority": "high",
+      "auto_escalate": false,
+      "required_actions": [
+        "remind_patient",
+        "notify_caregiver"
+      ]
+    },
+    "safety_anomaly": {
+      "priority": "medium",
+      "auto_escalate": false,
+      "required_actions": [
+        "investigate",
+        "increase_monitoring"
+      ]
+    }
+  }
+}
