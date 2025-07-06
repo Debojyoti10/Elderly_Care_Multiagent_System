@@ -1,0 +1,94 @@
+{
+  "system": {
+    "monitoring_interval": 60,
+    "model_persistence": true,
+    "auto_train_models": true,
+    "emergency_response_enabled": true
+  },
+  "data_paths": {
+    "health_data": "data/health_monitoring.csv",
+    "safety_data": "data/safety_monitoring.csv",
+    "reminder_data": "data/daily_reminder.csv"
+  },
+  "model_paths": {
+    "health_models": "models/health/",
+    "safety_models": "models/safety/",
+    "reminder_models": "models/reminder/"
+  },
+  "thresholds": {
+    "health_critical": 0.8,
+    "safety_critical": 0.9,
+    "compliance_critical": 0.3
+  },
+  "users": {
+    "D1001": {
+      "user_id": "D1001",
+      "name": "John Doe",
+      "age": 75,
+      "emergency_contacts": {
+        "primary": {
+          "name": "Jane Doe",
+          "phone": "+1234567890"
+        },
+        "secondary": {
+          "name": "Dr. Smith",
+          "phone": "+1234567891"
+        }
+      },
+      "medical_conditions": [
+        "Hypertension",
+        "Diabetes"
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Metformin",
+          "times": [
+            "08:00",
+            "12:00",
+            "18:00"
+          ]
+        }
+      ],
+      "mobility_level": "normal",
+      "risk_factors": [],
+      "preferences": {},
+      "registered_at": "2025-07-06T23:58:42.905600",
+      "status": "active"
+    },
+    "TEST001": {
+      "user_id": "TEST001",
+      "name": "Test User",
+      "age": 78,
+      "emergency_contacts": {
+        "primary": {
+          "name": "Emergency Contact",
+          "phone": "+1234567890"
+        }
+      },
+      "medical_conditions": [
+        "Hypertension"
+      ],
+      "medications": [
+        {
+          "name": "Blood Pressure Medication",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        }
+      ],
+      "mobility_level": "normal",
+      "risk_factors": [],
+      "preferences": {},
+      "registered_at": "2025-07-07T00:02:14.874737",
+      "status": "active"
+    }
+  }
+}
