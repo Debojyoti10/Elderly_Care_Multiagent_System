@@ -89,6 +89,165 @@
       "preferences": {},
       "registered_at": "2025-07-07T00:02:14.874737",
       "status": "active"
+    },
+    "DEMO001": {
+      "user_id": "DEMO001",
+      "name": "Demo User",
+      "age": 75,
+      "emergency_contacts": {
+        "primary": {
+          "name": "Demo Contact",
+          "phone": "+1234567890"
+        }
+      },
+      "medical_conditions": [
+        "Hypertension",
+        "Diabetes"
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Metformin",
+          "times": [
+            "08:00",
+            "12:00",
+            "18:00"
+          ]
+        }
+      ],
+      "mobility_level": "normal",
+      "risk_factors": [],
+      "preferences": {},
+      "registered_at": "2025-07-07T00:11:54.386164",
+      "status": "active"
+    },
+    "U001": {
+      "user_id": "U001",
+      "name": "Eleanor Johnson",
+      "age": 78,
+      "emergency_contacts": {
+        "primary": {
+          "name": "Sarah Johnson",
+          "phone": "+1-555-0123"
+        }
+      },
+      "medical_conditions": [
+        "Hypertension",
+        "Diabetes Type 2"
+      ],
+      "medications": [
+        {
+          "name": "Lisinopril",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Metformin",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Aspirin",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        }
+      ],
+      "mobility_level": "normal",
+      "risk_factors": [],
+      "preferences": {},
+      "registered_at": "2025-07-11T00:45:49.578874",
+      "status": "active"
+    },
+    "U002": {
+      "user_id": "U002",
+      "name": "Robert Chen",
+      "age": 82,
+      "emergency_contacts": {
+        "primary": {
+          "name": "Michael Chen",
+          "phone": "+1-555-0456"
+        }
+      },
+      "medical_conditions": [
+        "Heart Disease",
+        "Arthritis"
+      ],
+      "medications": [
+        {
+          "name": "Atorvastatin",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Ibuprofen",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        }
+      ],
+      "mobility_level": "normal",
+      "risk_factors": [],
+      "preferences": {},
+      "registered_at": "2025-07-11T00:45:49.584161",
+      "status": "active"
+    },
+    "U003": {
+      "user_id": "U003",
+      "name": "Margaret Smith",
+      "age": 75,
+      "emergency_contacts": {
+        "primary": {
+          "name": "David Smith",
+          "phone": "+1-555-0789"
+        }
+      },
+      "medical_conditions": [
+        "Osteoporosis",
+        "Mild Cognitive Impairment"
+      ],
+      "medications": [
+        {
+          "name": "Alendronate",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Calcium",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        },
+        {
+          "name": "Vitamin D",
+          "times": [
+            "08:00",
+            "20:00"
+          ]
+        }
+      ],
+      "mobility_level": "normal",
+      "risk_factors": [],
+      "preferences": {},
+      "registered_at": "2025-07-11T00:45:49.587685",
+      "status": "active"
     }
   }
 }
