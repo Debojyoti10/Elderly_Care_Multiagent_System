@@ -1,4 +1,25 @@
-# Elderly Care Monitor - Deployment Guide
+# Elderly Care Monitor - Multi-Page Web Application
+
+## 🚀 New Features
+
+### Multi-Page Architecture
+- **Setup Page**: Initial caregiver contact information setup
+- **Dashboard Page**: Real-time health monitoring
+- **Users Page**: User management and details
+- **Alerts Page**: View sent alerts and system notifications
+- **Settings Page**: Update contact info and test alerts
+
+### Emergency Alert System
+- **Email Alerts**: Detailed health reports sent to caregiver email
+- **SMS Alerts**: Quick notifications sent to caregiver phone
+- **Real-time Notifications**: Instant alerts for critical health events
+- **Alert History**: View all sent alerts with timestamps
+
+### Enhanced User Experience
+- **Mandatory Setup**: Email and phone verification before access
+- **Navigation**: Easy page switching with button navigation
+- **Contact Management**: Update caregiver info anytime
+- **Test Alerts**: Send test emails and SMS to verify setup
 
 ## 🚀 Quick Start
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Elderly Care Multi-Agent System - Streamlit Web Application
+Elderly Care Multi-Agent System - Multi-Page Streamlit Web Application
 
 This is the main Streamlit application for the elderly care monitoring system.
 """
@@ -17,6 +17,10 @@ from typing import Dict, List, Optional
 import time
 import random
 import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import re
 
 # Add current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -104,6 +108,14 @@ if 'monitoring_active' not in st.session_state:
     st.session_state.monitoring_active = False
 if 'fake_data_enabled' not in st.session_state:
     st.session_state.fake_data_enabled = False
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = 'Setup'
+if 'caregiver_email' not in st.session_state:
+    st.session_state.caregiver_email = ''
+if 'caregiver_phone' not in st.session_state:
+    st.session_state.caregiver_phone = ''
+if 'setup_complete' not in st.session_state:
+    st.session_state.setup_complete = False
 
 def initialize_system():
     """Initialize the elderly care system"""
@@ -309,8 +321,81 @@ def create_health_chart(user_id: str, days: int = 7):
     
     return fig
 
-def render_dashboard():
-    """Render the main dashboard"""
+def render_setup_page():
+    """Render the initial setup page"""
+    st.markdown('<h1 class="main-header">🏥 Elderly Care Monitor - Setup</h1>', unsafe_allow_html=True)
+    
+    st.markdown("### 📋 Caregiver Information Setup")
+    st.markdown("Please provide your contact information to receive emergency alerts.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📧 Email Address")
+        email = st.text_input(
+            "Enter your email address",
+            value=st.session_state.caregiver_email,
+            placeholder="caregiver@example.com",
+            help="This email will receive emergency alerts"
+        )
+        
+        if email and not validate_email(email):
+            st.error("Please enter a valid email address")
+        elif email:
+            st.success("✅ Valid email address")
+    
+    with col2:
+        st.markdown("#### 📱 Phone Number")
+        phone = st.text_input(
+            "Enter your phone number",
+            value=st.session_state.caregiver_phone,
+            placeholder="+1234567890",
+            help="This number will receive SMS alerts"
+        )
+        
+        if phone and not validate_phone(phone):
+            st.error("Please enter a valid phone number (10-15 digits)")
+        elif phone:
+            st.success("✅ Valid phone number")
+    
+    st.markdown("---")
+    
+    # Setup completion
+    if st.button("✅ Complete Setup", type="primary", use_container_width=True):
+        if email and phone and validate_email(email) and validate_phone(phone):
+            st.session_state.caregiver_email = email
+            st.session_state.caregiver_phone = phone
+            st.session_state.setup_complete = True
+            st.session_state.current_page = 'Dashboard'
+            st.success("🎉 Setup completed successfully!")
+            st.rerun()
+        else:
+            st.error("Please provide valid email and phone number before continuing")
+    
+    # Show sample alert preview
+    st.markdown("### 📄 Sample Alert Preview")
+    st.markdown("Here's what alerts will look like:")
+    
+    sample_alert = """
+    🚨 CRITICAL ALERT - Eleanor Johnson
+    
+    Patient: Eleanor Johnson
+    Time: 2025-07-11 14:30:00
+    Status: CRITICAL - Immediate attention required
+    
+    Health Metrics:
+    - Heart Rate: 145 bpm
+    - Blood Pressure: 180/110 mmHg
+    - Glucose: 280 mg/dL
+    - Oxygen Saturation: 89%
+    
+    IMMEDIATE ACTION REQUIRED!
+    """
+    
+    st.code(sample_alert, language="text")
+
+def render_dashboard_page():
+    """Render the main dashboard page"""
     st.markdown('<h1 class="main-header">🏥 Elderly Care Monitor</h1>', unsafe_allow_html=True)
     
     if not initialize_system():
@@ -320,8 +405,38 @@ def render_dashboard():
     if st.session_state.fake_data_enabled:
         generate_fake_user_data()
     
+    # Navigation buttons
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🏠 Dashboard", type="primary"):
+            st.session_state.current_page = 'Dashboard'
+            st.rerun()
+    
+    with col2:
+        if st.button("👥 Users"):
+            st.session_state.current_page = 'Users'
+            st.rerun()
+    
+    with col3:
+        if st.button("🚨 Alerts"):
+            st.session_state.current_page = 'Alerts'
+            st.rerun()
+    
+    with col4:
+        if st.button("⚙️ Settings"):
+            st.session_state.current_page = 'Settings'
+            st.rerun()
+    
+    st.markdown("---")
+    
     # Sidebar controls
     st.sidebar.title("🎛️ Control Panel")
+    
+    # Show caregiver info
+    st.sidebar.markdown("### 👨‍⚕️ Caregiver Info")
+    st.sidebar.info(f"📧 {st.session_state.caregiver_email}")
+    st.sidebar.info(f"📱 {st.session_state.caregiver_phone}")
     
     # Fake data toggle
     fake_data = st.sidebar.toggle("Generate Fake Data", value=st.session_state.fake_data_enabled)
@@ -382,6 +497,12 @@ def render_dashboard():
                     st.sidebar.success(f"✅ Monitoring completed")
                     if result.get('alerts_generated'):
                         st.sidebar.warning(f"⚠️ {len(result['alerts_generated'])} alerts generated")
+                        
+                        # Send emergency alerts if needed
+                        user_name = st.session_state.users[selected_user]['name']
+                        if scenario in ['warning', 'critical']:
+                            send_emergency_alerts(user_name, scenario, health_data, safety_data)
+                            st.sidebar.success("📧 Emergency alerts sent!")
                 else:
                     st.sidebar.error("❌ Monitoring failed")
     
@@ -390,6 +511,300 @@ def render_dashboard():
         render_user_dashboard(selected_user, scenario)
     else:
         render_overview_dashboard()
+
+def render_users_page():
+    """Render the users management page"""
+    st.markdown('<h1 class="main-header">👥 Users Management</h1>', unsafe_allow_html=True)
+    
+    # Navigation buttons
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🏠 Dashboard"):
+            st.session_state.current_page = 'Dashboard'
+            st.rerun()
+    
+    with col2:
+        if st.button("👥 Users", type="primary"):
+            st.session_state.current_page = 'Users'
+            st.rerun()
+    
+    with col3:
+        if st.button("🚨 Alerts"):
+            st.session_state.current_page = 'Alerts'
+            st.rerun()
+    
+    with col4:
+        if st.button("⚙️ Settings"):
+            st.session_state.current_page = 'Settings'
+            st.rerun()
+    
+    st.markdown("---")
+    
+    if not st.session_state.users:
+        st.info("No users registered. Enable fake data in the dashboard to see demo users.")
+        return
+    
+    # Users overview
+    st.markdown("### 👥 Registered Users")
+    
+    users_data = []
+    for user_id, user in st.session_state.users.items():
+        if st.session_state.system:
+            dashboard = st.session_state.system.get_user_dashboard(user_id)
+            status = dashboard.get('overall_status', {}).get('level', 'normal')
+            alerts = len(st.session_state.system.agents['alert'].get_active_alerts(user_id))
+        else:
+            status = 'normal'
+            alerts = 0
+        
+        users_data.append({
+            'ID': user_id,
+            'Name': user['name'],
+            'Age': user['age'],
+            'Status': status.title(),
+            'Active Alerts': alerts,
+            'Conditions': len(user['conditions']),
+            'Medications': len(user['medications']),
+            'Emergency Contact': user['emergency_contact']['name']
+        })
+    
+    df = pd.DataFrame(users_data)
+    st.dataframe(df, use_container_width=True)
+    
+    # User details
+    st.markdown("### 📋 User Details")
+    
+    selected_user = st.selectbox(
+        "Select user for details",
+        options=list(st.session_state.users.keys()),
+        format_func=lambda x: st.session_state.users[x]['name']
+    )
+    
+    if selected_user:
+        user = st.session_state.users[selected_user]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 👤 Personal Information")
+            st.markdown(f"**Name:** {user['name']}")
+            st.markdown(f"**Age:** {user['age']}")
+            st.markdown(f"**ID:** {selected_user}")
+            
+            st.markdown("#### 📞 Emergency Contact")
+            st.markdown(f"**Name:** {user['emergency_contact']['name']}")
+            st.markdown(f"**Phone:** {user['emergency_contact']['phone']}")
+        
+        with col2:
+            st.markdown("#### 🏥 Medical Information")
+            st.markdown("**Conditions:**")
+            for condition in user['conditions']:
+                st.markdown(f"• {condition}")
+            
+            st.markdown("**Medications:**")
+            for medication in user['medications']:
+                st.markdown(f"• {medication}")
+
+def render_alerts_page():
+    """Render the alerts management page"""
+    st.markdown('<h1 class="main-header">🚨 Alerts Management</h1>', unsafe_allow_html=True)
+    
+    # Navigation buttons
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🏠 Dashboard"):
+            st.session_state.current_page = 'Dashboard'
+            st.rerun()
+    
+    with col2:
+        if st.button("👥 Users"):
+            st.session_state.current_page = 'Users'
+            st.rerun()
+    
+    with col3:
+        if st.button("🚨 Alerts", type="primary"):
+            st.session_state.current_page = 'Alerts'
+            st.rerun()
+    
+    with col4:
+        if st.button("⚙️ Settings"):
+            st.session_state.current_page = 'Settings'
+            st.rerun()
+    
+    st.markdown("---")
+    
+    # Show sent alerts
+    if 'sent_alerts' in st.session_state and st.session_state.sent_alerts:
+        st.markdown("### 📧 Sent Alerts")
+        
+        for alert in reversed(st.session_state.sent_alerts[-10:]):  # Show last 10 alerts
+            timestamp = datetime.fromisoformat(alert['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
+            
+            if alert['type'] == 'email':
+                st.markdown(f"**📧 Email Alert** - {timestamp}")
+                st.markdown(f"**To:** {alert['recipient']}")
+                st.markdown(f"**Subject:** {alert['subject']}")
+                with st.expander("View full message"):
+                    st.text(alert['message'])
+            else:  # SMS
+                st.markdown(f"**📱 SMS Alert** - {timestamp}")
+                st.markdown(f"**To:** {alert['recipient']}")
+                st.markdown(f"**Message:** {alert['message']}")
+            
+            st.markdown("---")
+    else:
+        st.info("No alerts sent yet. Generate alerts by running health checks in the dashboard.")
+    
+    # System alerts
+    if st.session_state.system:
+        st.markdown("### 🚨 System Alerts")
+        
+        active_alerts = st.session_state.system.agents['alert'].get_active_alerts()
+        
+        if active_alerts:
+            for alert in active_alerts:
+                priority_color = {
+                    'high': 'alert-critical',
+                    'medium': 'alert-warning',
+                    'low': 'alert-normal'
+                }.get(alert['priority'], 'alert-normal')
+                
+                st.markdown(f'<div class="{priority_color}">', unsafe_allow_html=True)
+                st.markdown(f"**Alert ID:** {alert['alert_id']}")
+                st.markdown(f"**User:** {alert['user_id']}")
+                st.markdown(f"**Type:** {alert['alert_type']}")
+                st.markdown(f"**Priority:** {alert['priority'].upper()}")
+                st.markdown(f"**Status:** {alert['status']}")
+                st.markdown(f"**Message:** {alert['message']}")
+                st.markdown(f"**Received:** {alert['received_at']}")
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("---")
+        else:
+            st.info("No active system alerts")
+
+def render_settings_page():
+    """Render the settings page"""
+    st.markdown('<h1 class="main-header">⚙️ Settings</h1>', unsafe_allow_html=True)
+    
+    # Navigation buttons
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🏠 Dashboard"):
+            st.session_state.current_page = 'Dashboard'
+            st.rerun()
+    
+    with col2:
+        if st.button("👥 Users"):
+            st.session_state.current_page = 'Users'
+            st.rerun()
+    
+    with col3:
+        if st.button("🚨 Alerts"):
+            st.session_state.current_page = 'Alerts'
+            st.rerun()
+    
+    with col4:
+        if st.button("⚙️ Settings", type="primary"):
+            st.session_state.current_page = 'Settings'
+            st.rerun()
+    
+    st.markdown("---")
+    
+    # Caregiver settings
+    st.markdown("### 👨‍⚕️ Caregiver Information")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        new_email = st.text_input(
+            "Email Address",
+            value=st.session_state.caregiver_email,
+            help="Email address for receiving alerts"
+        )
+        
+        if new_email and not validate_email(new_email):
+            st.error("Please enter a valid email address")
+    
+    with col2:
+        new_phone = st.text_input(
+            "Phone Number",
+            value=st.session_state.caregiver_phone,
+            help="Phone number for SMS alerts"
+        )
+        
+        if new_phone and not validate_phone(new_phone):
+            st.error("Please enter a valid phone number")
+    
+    if st.button("💾 Save Changes"):
+        if new_email and new_phone and validate_email(new_email) and validate_phone(new_phone):
+            st.session_state.caregiver_email = new_email
+            st.session_state.caregiver_phone = new_phone
+            st.success("✅ Settings saved successfully!")
+        else:
+            st.error("Please provide valid email and phone number")
+    
+    # Test alerts
+    st.markdown("### 🧪 Test Alerts")
+    
+    if st.button("📧 Send Test Email"):
+        if st.session_state.caregiver_email:
+            send_email_alert(
+                st.session_state.caregiver_email,
+                "🧪 Test Alert - Elderly Care Monitor",
+                "This is a test email from the Elderly Care Monitor system. Your email notifications are working correctly!"
+            )
+            st.success("Test email sent!")
+        else:
+            st.error("Please set your email address first")
+    
+    if st.button("📱 Send Test SMS"):
+        if st.session_state.caregiver_phone:
+            send_sms_alert(
+                st.session_state.caregiver_phone,
+                "🧪 Test SMS from Elderly Care Monitor. Your SMS notifications are working correctly!"
+            )
+            st.success("Test SMS sent!")
+        else:
+            st.error("Please set your phone number first")
+    
+    # System settings
+    st.markdown("### 🔧 System Settings")
+    
+    if st.button("🗑️ Clear All Alerts"):
+        if 'sent_alerts' in st.session_state:
+            st.session_state.sent_alerts = []
+            st.success("All alerts cleared!")
+    
+    if st.button("🔄 Reset System"):
+        st.session_state.system = None
+        st.session_state.users = {}
+        st.session_state.monitoring_active = False
+        st.session_state.fake_data_enabled = False
+        if 'sent_alerts' in st.session_state:
+            st.session_state.sent_alerts = []
+        st.success("System reset!")
+        st.rerun()
+
+def render_main_app():
+    """Render the main application with page routing"""
+    if not st.session_state.setup_complete:
+        render_setup_page()
+    else:
+        if st.session_state.current_page == 'Dashboard':
+            render_dashboard_page()
+        elif st.session_state.current_page == 'Users':
+            render_users_page()
+        elif st.session_state.current_page == 'Alerts':
+            render_alerts_page()
+        elif st.session_state.current_page == 'Settings':
+            render_settings_page()
+        else:
+            render_dashboard_page()
+
+# ...existing code...
 
 def render_user_dashboard(user_id: str, scenario: str):
     """Render dashboard for a specific user"""
@@ -596,9 +1011,139 @@ def render_overview_dashboard():
         df = pd.DataFrame(users_data)
         st.dataframe(df, use_container_width=True)
 
+def validate_email(email: str) -> bool:
+    """Validate email address format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_phone(phone: str) -> bool:
+    """Validate phone number format"""
+    # Remove all non-digit characters
+    digits = re.sub(r'\D', '', phone)
+    # Check if it's a valid length (10-15 digits)
+    return len(digits) >= 10 and len(digits) <= 15
+
+def send_email_alert(recipient_email: str, subject: str, message: str) -> bool:
+    """Send email alert (simulation for demo)"""
+    try:
+        # In a real application, you would use actual SMTP settings
+        # For demo purposes, we'll simulate the email sending
+        print(f"📧 EMAIL ALERT SENT!")
+        print(f"To: {recipient_email}")
+        print(f"Subject: {subject}")
+        print(f"Message: {message}")
+        print("-" * 50)
+        
+        # Store the alert in session state for display
+        if 'sent_alerts' not in st.session_state:
+            st.session_state.sent_alerts = []
+        
+        st.session_state.sent_alerts.append({
+            'type': 'email',
+            'recipient': recipient_email,
+            'subject': subject,
+            'message': message,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+
+def send_sms_alert(recipient_phone: str, message: str) -> bool:
+    """Send SMS alert (simulation for demo)"""
+    try:
+        # In a real application, you would use a service like Twilio
+        # For demo purposes, we'll simulate the SMS sending
+        print(f"📱 SMS ALERT SENT!")
+        print(f"To: {recipient_phone}")
+        print(f"Message: {message}")
+        print("-" * 50)
+        
+        # Store the alert in session state for display
+        if 'sent_alerts' not in st.session_state:
+            st.session_state.sent_alerts = []
+        
+        st.session_state.sent_alerts.append({
+            'type': 'sms',
+            'recipient': recipient_phone,
+            'message': message,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        return True
+    except Exception as e:
+        print(f"Failed to send SMS: {e}")
+        return False
+
+def send_emergency_alerts(user_name: str, alert_type: str, health_data: Optional[Dict], safety_data: Optional[Dict]):
+    """Send emergency alerts via email and SMS"""
+    if not st.session_state.caregiver_email or not st.session_state.caregiver_phone:
+        return
+    
+    # Ensure we have data to work with
+    if health_data is None:
+        health_data = {}
+    if safety_data is None:
+        safety_data = {}
+    
+    # Create alert message
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    if alert_type == 'critical':
+        subject = f"🚨 CRITICAL ALERT - {user_name}"
+        message = f"""
+CRITICAL HEALTH ALERT
+
+Patient: {user_name}
+Time: {timestamp}
+Status: CRITICAL - Immediate attention required
+
+Health Metrics:
+- Heart Rate: {health_data.get('heart_rate', 'N/A')} bpm
+- Blood Pressure: {health_data.get('systolic_bp', 'N/A')}/{health_data.get('diastolic_bp', 'N/A')} mmHg
+- Glucose: {health_data.get('glucose', 'N/A')} mg/dL
+- Oxygen Saturation: {health_data.get('oxygen_saturation', 'N/A')}%
+
+Safety Status:
+- Location: {safety_data.get('location', 'N/A')}
+- Activity: {safety_data.get('movement_activity', 'N/A')}
+- Impact Force: {safety_data.get('impact_force', 'N/A')}
+
+IMMEDIATE ACTION REQUIRED!
+Please check on the patient immediately.
+        """
+    elif alert_type == 'warning':
+        subject = f"⚠️ WARNING ALERT - {user_name}"
+        message = f"""
+HEALTH WARNING ALERT
+
+Patient: {user_name}
+Time: {timestamp}
+Status: WARNING - Attention needed
+
+Health Metrics:
+- Heart Rate: {health_data.get('heart_rate', 'N/A')} bpm
+- Blood Pressure: {health_data.get('systolic_bp', 'N/A')}/{health_data.get('diastolic_bp', 'N/A')} mmHg
+- Glucose: {health_data.get('glucose', 'N/A')} mg/dL
+- Oxygen Saturation: {health_data.get('oxygen_saturation', 'N/A')}%
+
+Please check on the patient when convenient.
+        """
+    else:
+        return  # No alert needed for normal status
+    
+    # Send email alert
+    send_email_alert(st.session_state.caregiver_email, subject, message)
+    
+    # Send SMS alert (shorter message)
+    sms_message = f"ALERT: {user_name} - {alert_type.upper()} health status detected at {timestamp}. Please check immediately."
+    send_sms_alert(st.session_state.caregiver_phone, sms_message)
+
 def main():
     """Main Streamlit application"""
-    render_dashboard()
+    render_main_app()
 
 if __name__ == "__main__":
     main()
